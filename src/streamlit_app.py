@@ -4,7 +4,7 @@ import openai
 from hashlib import sha256
 
 # Set up OpenAI API Key
-openai.api_key = 'your-openai-api-key'
+openai.api_key = 'key'
 
 # Function to create/connect to the database
 def create_connection():
@@ -47,12 +47,19 @@ def update_user_stats(username):
 
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=query,
-        max_tokens=150
+    client = openai.OpenAI(
+    api_key="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"
     )
-    return response.choices[0].text.strip()
+
+    completion = client.chat.completions.create(
+    model="gpt-4o-mini",
+    store=True,
+    messages=[
+        {"role": "user", "content": query}
+    ]
+    )
+
+    return(completion.choices[0].message)
 
 # Streamlit UI
 st.title("ChatGPT with User Login and Stats")
@@ -121,4 +128,3 @@ if 'username' not in st.session_state:
         register_page()
 else:
     main_page()
-
