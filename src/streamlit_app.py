@@ -3,9 +3,6 @@ import sqlite3
 import openai
 from hashlib import sha256
 
-# Set up OpenAI API Key
-openai.api_key = 'key'
-
 # Function to create/connect to the database
 def create_connection():
     conn = sqlite3.connect('user_data.db')
@@ -48,7 +45,7 @@ def update_user_stats(username):
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
     client = openai.OpenAI(
-    api_key="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"
+    api_key="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"
     )
 
     completion = client.chat.completions.create(
@@ -59,7 +56,7 @@ def chat_with_gpt(query):
     ]
     )
 
-    return(completion.choices[0].message)
+    return completion.choices[0].message.content
 
 # Streamlit UI
 st.title("ChatGPT with User Login and Stats")
