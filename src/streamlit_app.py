@@ -2,6 +2,7 @@ import streamlit as st
 import sqlite3
 import openai
 from hashlib import sha256
+import random
 
 # Function to create/connect to the database
 def create_connection():
@@ -54,7 +55,7 @@ def update_user_stats(username):
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
     client = openai.OpenAI(
-    api_key=""
+    api_key="the openai key"
     )
 
     completion = client.chat.completions.create(
@@ -85,20 +86,79 @@ def get_user_habits(username):
     conn.close()
     return habits
 
+def get_streak_increment_message(streak):
+    # Special milestone messages (when fire emoji is added)
+    if streak % 5 == 0:
+        milestone_messages = [
+            f"🎉 INCREDIBLE! {streak} DAYS! You've earned another 🔥! Your dedication is absolutely inspiring!",
+            f"🌟 PHENOMENAL! {streak} days and another 🔥 added to your collection! You're becoming unstoppable!",
+            f"⭐ LEGENDARY STATUS! {streak} days and a new 🔥! You're what consistency looks like!",
+            f"🏆 BOOM! {streak} days and you've unlocked another 🔥! You're building an empire of good habits!",
+            f"🎯 MAGNIFICENT! {streak} days strong! Another 🔥 to show for your incredible journey!"
+        ]
+        return random.choice(milestone_messages)
+    
+    # Regular encouragement messages
+    regular_messages = [
+        "Keep that momentum going! 💪",
+        "Another day stronger! 🌱",
+        "You're on fire! 🎯",
+        "Building that habit like a pro! ⚡",
+        "Consistency is your superpower! ✨",
+        "Look at you go! 🚀",
+        "That's the way! 🌟",
+        "Crushing it! 💫",
+        "You're on a roll! 🎲",
+        "Every day counts! 🎯"
+    ]
+    return random.choice(regular_messages)
+
 def update_habit_streak(habit_id):
     conn = create_connection()
+    cursor = conn.cursor()
+    
+    # Get current streak before updating
+    cursor.execute('SELECT streak FROM habits WHERE id=?', (habit_id,))
+    current_streak = cursor.fetchone()[0]
+    
+    # Update streak
     conn.execute('''UPDATE habits 
                     SET streak = streak + 1,
                         last_tracked = DATE('now')
                     WHERE id=?''', (habit_id,))
     conn.commit()
     conn.close()
+    
+    # Return appropriate message based on new streak
+    return get_streak_increment_message(current_streak + 1)
+
+def get_reset_message():
+    messages = [
+        "Oof! 😅 Everyone stumbles sometimes. The real champions are the ones who get back up! Want to show that habit who's boss?",
+        "Plot twist: This isn't a failure, it's just a dramatic pause in your success story. Ready to start the next chapter? 💪",
+        "Well, well, well... look who's hitting the reset button! Remember: The only real L is giving up completely. Let's get back to it! 🚀",
+        "Did you just... 😱 No worries! Even Olympic athletes have off days. Tomorrow's a new day to crush it!",
+        "Breaking news: Streak broken! But here's the thing - progress isn't perfect. It's messy, it's real, and it starts again NOW! 🌟"
+    ]
+    tips = [
+        "Pro tip: Start small tomorrow. Even tiny wins count!",
+        "Quick tip: Set a daily reminder - your future self will thank you.",
+        "Hint: Tell a friend about your habit - accountability works wonders!",
+        "Suggestion: Put your habit trigger (like running shoes) somewhere visible tonight.",
+        "Strategy: Pair this habit with something you already do daily!"
+    ]
+    return f"{random.choice(messages)}\n\n{random.choice(tips)}"
 
 def reset_habit_streak(habit_id):
     conn = create_connection()
     conn.execute('UPDATE habits SET streak = 0 WHERE id=?', (habit_id,))
     conn.commit()
     conn.close()
+    return get_reset_message()
+
+def get_streak_display(streak):
+    fire_emojis = '🔥' * (streak // 5)  # Add a fire emoji for every 5 streak points
+    return f"{streak} {fire_emojis}"
 
 # Streamlit UI
 st.title("ChatGPT with User Login and Stats")
@@ -145,6 +205,10 @@ def login_page():
 def main_page():
     st.subheader(f"Welcome {st.session_state['username']}!")
 
+    # Initialize messages in session state if they don't exist
+    if 'streak_messages' not in st.session_state:
+        st.session_state.streak_messages = {}
+    
     # Show user stats
     st.write(f"Login Count: {st.session_state['login_count']}")
 
@@ -182,15 +246,39 @@ def main_page():
         
         if habits:
             for habit in habits:
-                col1, col2, col3 = st.columns([2,1,1])
+                # Display any messages for this habit
+                habit_key = f"habit_{habit[0]}"
+                if habit_key in st.session_state.streak_messages:
+                    message, msg_type = st.session_state.streak_messages[habit_key]
+                    if msg_type == "success":
+                        st.success(message)
+                    elif msg_type == "info":
+                        st.info(message)
+                    elif msg_type == "warning":
+                        st.warning(message)
+                    # Clear the message after displaying
+                    del st.session_state.streak_messages[habit_key]
+
+                col1, col2, col3, col4 = st.columns([2,1,1,1])
                 with col1:
                     st.write(f"**{habit[2]}**")  # habit name
                     st.write(f"Frequency: {habit[3]}")  # target frequency
                 with col2:
-                    st.write(f"Streak: {habit[6]}")  # streak
+                    st.write(f"Streak: {get_streak_display(habit[6])}")  # streak with fire emojis
                 with col3:
                     if st.button("Track", key=f"track_{habit[0]}"):
-                        update_habit_streak(habit[0])
+                        success_message = update_habit_streak(habit[0])
+                        habit_key = f"habit_{habit[0]}"
+                        if habit[6] % 5 == 4:  # About to hit a milestone
+                            st.balloons()
+                            st.session_state.streak_messages[habit_key] = (success_message, "success")
+                        else:
+                            st.session_state.streak_messages[habit_key] = (success_message, "info")
+                        st.rerun()
+                with col4:
+                    if st.button("Reset Streak", key=f"reset_{habit[0]}"):
+                        reset_message = reset_habit_streak(habit[0])
+                        st.session_state.streak_messages[f"habit_{habit[0]}"] = (reset_message, "warning")
                         st.rerun()
                 st.divider()
         else:
