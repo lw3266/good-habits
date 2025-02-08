@@ -2,6 +2,18 @@ import streamlit as st
 import sqlite3
 import openai
 from hashlib import sha256
+import json
+
+# Load API key from a JSON file
+def load_api_key(filename="config.json"):
+    with open(filename, "r") as file:
+        data = json.load(file)
+        # Check if key is loaded
+        if not data:
+            raise ValueError("API key not found in JSON file.")
+        
+        print("API key loaded successfully.")
+        return data.get("OPENAI_API_KEY", "").strip()
 
 # Function to create/connect to the database
 def create_connection():
@@ -45,7 +57,7 @@ def update_user_stats(username):
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
     client = openai.OpenAI(
-    api_key="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"
+    api_key=load_api_key()
     )
 
     completion = client.chat.completions.create(
