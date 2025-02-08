@@ -15,6 +15,15 @@ def create_user_table():
                     (username TEXT PRIMARY KEY, 
                     password TEXT, 
                     login_count INTEGER)''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS habits
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT,
+                    habit_name TEXT,
+                    target_frequency TEXT,
+                    created_date DATE,
+                    last_tracked DATE,
+                    streak INTEGER,
+                    FOREIGN KEY (username) REFERENCES users(username))''')
     conn.commit()
     conn.close()
 
@@ -45,7 +54,7 @@ def update_user_stats(username):
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
     client = openai.OpenAI(
-    api_key="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"
+    api_key=""
     )
 
     completion = client.chat.completions.create(
@@ -57,6 +66,39 @@ def chat_with_gpt(query):
     )
 
     return completion.choices[0].message.content
+
+# Functions for habit tracking
+def add_habit(username, habit_name, target_frequency):
+    conn = create_connection()
+    conn.execute('''INSERT INTO habits 
+                    (username, habit_name, target_frequency, created_date, streak) 
+                    VALUES (?, ?, ?, DATE('now'), 0)''', 
+                    (username, habit_name, target_frequency))
+    conn.commit()
+    conn.close()
+
+def get_user_habits(username):
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM habits WHERE username=?', (username,))
+    habits = cursor.fetchall()
+    conn.close()
+    return habits
+
+def update_habit_streak(habit_id):
+    conn = create_connection()
+    conn.execute('''UPDATE habits 
+                    SET streak = streak + 1,
+                        last_tracked = DATE('now')
+                    WHERE id=?''', (habit_id,))
+    conn.commit()
+    conn.close()
+
+def reset_habit_streak(habit_id):
+    conn = create_connection()
+    conn.execute('UPDATE habits SET streak = 0 WHERE id=?', (habit_id,))
+    conn.commit()
+    conn.close()
 
 # Streamlit UI
 st.title("ChatGPT with User Login and Stats")
@@ -106,14 +148,53 @@ def main_page():
     # Show user stats
     st.write(f"Login Count: {st.session_state['login_count']}")
 
-    # Chat with ChatGPT
-    query = st.text_area("Ask a question to ChatGPT:")
-    if st.button("Send"):
-        if query:
-            response = chat_with_gpt(query)
-            st.write(f"ChatGPT: {response}")
+    # Add tabs for different features
+    tab1, tab2 = st.tabs(["Chat with AI", "Habit Tracker"])
+    
+    with tab1:
+        # Chat with ChatGPT
+        query = st.text_area("Ask a question to ChatGPT:")
+        if st.button("Send"):
+            if query:
+                response = chat_with_gpt(query)
+                st.write(f"ChatGPT: {response}")
+            else:
+                st.error("Please enter a question.")
+    
+    with tab2:
+        st.subheader("Habit Tracker")
+        
+        # Form to add new habit
+        with st.form("new_habit"):
+            st.write("Add New Habit")
+            habit_name = st.text_input("Habit Name")
+            frequency = st.selectbox("Target Frequency", 
+                                   ["Daily", "Weekly", "Monthly"])
+            submit = st.form_submit_button("Add Habit")
+            
+            if submit and habit_name:
+                add_habit(st.session_state['username'], habit_name, frequency)
+                st.success(f"Added new habit: {habit_name}")
+        
+        # Display existing habits
+        st.write("Your Habits")
+        habits = get_user_habits(st.session_state['username'])
+        
+        if habits:
+            for habit in habits:
+                col1, col2, col3 = st.columns([2,1,1])
+                with col1:
+                    st.write(f"**{habit[2]}**")  # habit name
+                    st.write(f"Frequency: {habit[3]}")  # target frequency
+                with col2:
+                    st.write(f"Streak: {habit[6]}")  # streak
+                with col3:
+                    if st.button("Track", key=f"track_{habit[0]}"):
+                        update_habit_streak(habit[0])
+                        st.rerun()
+                st.divider()
         else:
-            st.error("Please enter a question.")
+            st.info("No habits tracked yet. Add your first habit above!")
 
 # If user is not logged in, show login or register
 if 'username' not in st.session_state:
