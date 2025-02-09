@@ -1,11 +1,11 @@
-# G00D Habits
+# GooD-Habits
 HACKNYU 2025
 ![screenshot](resources/demo.png)
 
 
 **Inspiration**
 
-We considered apps like Duolingo, which we realized we used frequently due to its fun gamified and interactive experience. We wanted to apply similar principles to habit tracking, making it more than just a to-do list. With G00d-Habits, you will obtain a motivating experience towards greater goals. The generative AI powered notification will give you a personalized experience will keep you reminded, and always give you the support. Are you ready to start making good habits today?
+We considered apps like Duolingo, which we realized we used frequently due to its fun gamified and interactive experience. We wanted to apply similar principles to habit tracking, making it more than just a to-do list. With G00d-Habits, you will obtain a motivating experience towards greater goals. The generative AI powered notification will give you a personalized experience will keep you reminded, and always give you the support. Are you ready to start making GooD-Habits today?
 
 **What it does:** 
 
@@ -28,9 +28,9 @@ We successfully built a functional prototype that combines AI-driven habit track
 **What we learn:**
 
 We gained hands-on experience integrating AI models into real-world applications. We also learned about data cleanliness by having to manage unwieldy structural differences between development branches. Working across different platforms taught us valuable lessons in coordination in API's.
-What's next for Good Habits
+What's next for GooD-Habits
 
-**What's next for G00D Habits**
+**What's next for GooD-Habits**
 
 With more time, we would have implement a browser extension using JavaScript to monitor user activity. The browser extension would supplement the sense of accountability by sending notifications and tracking browsing habits. We also would want to possibly have browser extension's capabilities integrated with other productivity tools. Furthermore, we may have include more gamification features, such as progress graphing and competition with other users, as well as deploying the app to other platforms.
 
