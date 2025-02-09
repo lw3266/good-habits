@@ -1,12 +1,32 @@
 import sqlite3
 import os
 
+# Function to create/connect to the database
 def create_connection():
-    # Get the absolute path to the src directory
-    src_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(src_dir, 'user_data.db')
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect('user_data.db')
     return conn
+
+def create_user_table():
+    conn = create_connection()
+    conn.execute('''CREATE TABLE IF NOT EXISTS users
+                    (username TEXT PRIMARY KEY, 
+                    password TEXT,
+                    display_name TEXT,
+                    bio TEXT,
+                    login_count INTEGER)''')  # Closing properly
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS habits
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT,
+                    habit_name TEXT,
+                    target_frequency TEXT,
+                    created_date DATE,
+                    last_tracked DATE,
+                    streak INTEGER,  -- Add a comma here
+                    FOREIGN KEY (username) REFERENCES users(username))''')  # Proper closing
+    conn.commit()
+    conn.close()
+
 
 def upgrade_database():
     conn = create_connection()
@@ -28,18 +48,6 @@ def upgrade_database():
         pass
     finally:
         conn.close()
-
-def create_user_table():
-    conn = create_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS users
-                    (username TEXT PRIMARY KEY, 
-                    password TEXT, 
-                    login_count INTEGER,
-                    display_name TEXT,
-                    bio TEXT)''')
-    conn.commit()
-    conn.close()
-    upgrade_database()
 
 def store_user(username, password):
     conn = create_connection()
