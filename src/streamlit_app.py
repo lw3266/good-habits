@@ -1,58 +1,22 @@
 import streamlit as st
-import sqlite3
 import openai
 from hashlib import sha256
 import json
+from profile_page import profile_page
+from database import (
+    create_user_table, 
+    store_user, 
+    get_user, 
+    update_user_stats
+)
 
 # Load API key from a JSON file
 def load_api_key(filename="config.json"):
     with open(filename, "r") as file:
         data = json.load(file)
-        # Check if key is loaded
         if not data:
             raise ValueError("API key not found in JSON file.")
-        
-        print("API key loaded successfully.")
         return data.get("OPENAI_API_KEY", "").strip()
-
-# Function to create/connect to the database
-def create_connection():
-    conn = sqlite3.connect('user_data.db')
-    return conn
-
-# Function to create user table (if not exists)
-def create_user_table():
-    conn = create_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS users
-                    (username TEXT PRIMARY KEY, 
-                    password TEXT, 
-                    login_count INTEGER)''')
-    conn.commit()
-    conn.close()
-
-# Function to store new user data
-def store_user(username, password):
-    conn = create_connection()
-    conn.execute('INSERT INTO users (username, password, login_count) VALUES (?, ?, ?)', 
-                 (username, password, 0))
-    conn.commit()
-    conn.close()
-
-# Function to get user by username
-def get_user(username):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE username=?', (username,))
-    user = cursor.fetchone()
-    conn.close()
-    return user
-
-# Function to update user stats (e.g., login_count)
-def update_user_stats(username):
-    conn = create_connection()
-    conn.execute('UPDATE users SET login_count = login_count + 1 WHERE username=?', (username,))
-    conn.commit()
-    conn.close()
 
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
@@ -105,8 +69,10 @@ def login_page():
         if user and sha256(password.encode()).hexdigest() == user[1]:
             st.session_state['username'] = username
             update_user_stats(username)
-            # Increase the login count by one (user[2] is the old value)
-            st.session_state['login_count'] = user[2] + 1
+            # Store all user data in session state
+            st.session_state['login_count'] = user[2]
+            st.session_state['display_name'] = user[3]
+            st.session_state['bio'] = user[4]
             st.success("Login successful!")
             main_page()
         else:
@@ -117,7 +83,6 @@ def main_page():
     st.subheader(f"Welcome {st.session_state['username']}!")
     
     # Inject a hidden HTML element so that the browser extension can obtain the current username.
-    # The element is hidden using inline CSS (display: none), but its text content contains the username.
     st.markdown(
         f"<div id='user-info' style='display: none;'>{st.session_state['username']}</div>",
         unsafe_allow_html=True
@@ -125,6 +90,11 @@ def main_page():
     
     # Show user stats
     st.write(f"Login Count: {st.session_state['login_count']}")
+    
+    # Add a button to navigate to profile page
+    if st.button("View Profile"):
+        st.session_state['page'] = 'profile'
+        st.rerun()
     
     # Chat with ChatGPT
     query = st.text_area("Ask a question to ChatGPT:")
@@ -144,4 +114,16 @@ if 'username' not in st.session_state:
     else:
         register_page()
 else:
-    main_page()
+    # Check which page to display
+    if 'page' not in st.session_state:
+        st.session_state['page'] = 'main'
+    
+    if st.session_state['page'] == 'main':
+        main_page()
+    elif st.session_state['page'] == 'profile':
+        profile_page()
+
+    # Handle force rerun if needed
+    if 'force_rerun' in st.session_state and st.session_state['force_rerun']:
+        del st.session_state['force_rerun']
+        st.rerun()
