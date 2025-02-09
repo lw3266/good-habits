@@ -1,5 +1,6 @@
 # G00D-Habits
 HACKNYU 2025
+![Alt text](/resources=true "demo")
 
 **Inspiration**
 
