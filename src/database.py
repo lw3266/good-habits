@@ -1,7 +1,11 @@
 import sqlite3
+import os
 
 def create_connection():
-    conn = sqlite3.connect('user_data.db')
+    # Get the absolute path to the src directory
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(src_dir, 'user_data.db')
+    conn = sqlite3.connect(db_path)
     return conn
 
 def upgrade_database():
