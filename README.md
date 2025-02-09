@@ -5,7 +5,7 @@ HACKNYU 2025
 
 **Inspiration**
 
-We considered apps like Duolingo, which we realized we used frequently due to its fun gamified and interactive experience. We wanted to apply similar principles to habit tracking, making it more than just a to-do list.
+We considered apps like Duolingo, which we realized we used frequently due to its fun gamified and interactive experience. We wanted to apply similar principles to habit tracking, making it more than just a to-do list. With G00d-Habits, you will obtain a motivating experience towards greater goals. The generative AI powered notification will give you a personalized experience will keep you reminded, and always give you the support. Are you ready to start making good habits today?
 
 **What it does:** 
 
