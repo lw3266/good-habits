@@ -4,9 +4,8 @@ HACKNYU 2025
 **Inspiration**
 
 We considered apps like Duolingo, which we realized we used frequently due to its fun gamified and interactive experience. We wanted to apply similar principles to habit tracking, making it more than just a to-do list.
-What it does
 
-**Description:** 
+**What it does:** 
 
 Good Habits is a web app that helps users build and maintain positive habits. The web app provides a dashboard where users can track their progress and receive AI-generated motivational and helpful messages.
 
