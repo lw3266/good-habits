@@ -11,6 +11,18 @@ We considered apps like Duolingo, which we realized we used frequently due to it
 
 G00D-Habits is a web app that helps users build and maintain positive habits. The web app provides a dashboard where users can track their progress and receive AI-generated motivational and helpful messages. User can expect friendly reminders of the habits with different feedback each time (not available at the moment).
 
+**Running the tool:**
+
+With a Chrome browser (Firefox not guarnteed to work), go to chrome://extensions to open the extension management page. Then eournable Developer mode at the upper right corner, and choose Load Unpacked. Navigate into the extension folder, and click okay. Chrome should now have your extension ready. You will see an error, and it should be a warning about using manifest version 2. Feel free to ignore that warning.
+
+In the IDE, prep the project files, and open two terminals. In one of them, run 
+> streamlit run app.py
+
+and the other run
+> python api.py
+
+This will create connection to local host on port 8501 and 5000.
+
 **How we built it:**
 
 G00D-Habits has two parts, one is the webapp for user interface, and the other is the Chrome browser extension that checks for browser statistics and gives notifications.
