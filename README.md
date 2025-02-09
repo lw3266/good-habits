@@ -33,7 +33,7 @@ With more time, we would have implement a browser extension using JavaScript to 
 
 **Built With**
 
--javascript
--python
--sqlite
--streamlit
+javascript
+,python
+,sqlite
+,streamlit
