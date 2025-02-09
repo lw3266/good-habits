@@ -174,7 +174,7 @@ def get_streak_display(streak):
     return f"{streak} {fire_emojis}"
 
 # Streamlit UI
-st.title("ChatGPT with User Login and Stats")
+st.title("Good Habits")
 
 # Ensure the user table is created when the app starts
 create_user_table()
@@ -209,11 +209,10 @@ def login_page():
             st.session_state['username'] = username
             update_user_stats(username)
             # Store all user data in session state
-            print(user)
             st.session_state['login_count'] = user[4]  # Correct index for login_count
             st.session_state['display_name'] = user[2]  # Correct index for display_name
             st.session_state['bio'] = user[3]  # Correct index for bio
-            st.success("Login successful!")
+            st.rerun()
             main_page()
         else:
             st.error("Invalid username or password.")
@@ -369,7 +368,7 @@ def main_page():
     chat_cols = st.columns([1, 1])
     
     with chat_cols[0]:
-        query = st.text_area("Ask me anything about your habits or daily planning:", height=200)
+        query = st.text_area("Ask me anything about your habits or planning:", height=200)
         if st.button("Send 📤", use_container_width=True):
             if query:
                 response = chat_with_gpt(query, st.session_state['username'])
