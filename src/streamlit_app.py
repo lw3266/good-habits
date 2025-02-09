@@ -3,7 +3,19 @@ import sqlite3
 import openai
 from hashlib import sha256
 import random
+import json
 
+# Load API key from a JSON file
+def load_api_key(filename="config.json"):
+    with open(filename, "r") as file:
+        data = json.load(file)
+        # Check if key is loaded
+        if not data:
+            raise ValueError("API key not found in JSON file.")
+        
+        print("API key loaded successfully.")
+        return data.get("OPENAI_API_KEY", "").strip()
+    
 # Function to create/connect to the database
 def create_connection():
     conn = sqlite3.connect('user_data.db')
@@ -91,7 +103,7 @@ def chat_with_gpt(query, username):
     Be encouraging but realistic. Acknowledge their progress and setbacks naturally in conversation."""
 
     client = openai.OpenAI(
-        api_key="api key!!"
+        api_key=load_api_key()
     )
 
     completion = client.chat.completions.create(
@@ -240,6 +252,9 @@ def login_page():
 
 # Main page after login
 def main_page():
+    # Add hidden element with the username for the extension to detect
+    st.markdown(f'<div id="user-info" style="display:none;">{st.session_state["username"]}</div>', unsafe_allow_html=True)
+
     # Initialize messages in session state if they don't exist
     if 'streak_messages' not in st.session_state:
         st.session_state['streak_messages'] = {}
