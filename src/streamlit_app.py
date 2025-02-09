@@ -1,9 +1,15 @@
 import streamlit as st
-import sqlite3
 import openai
 from hashlib import sha256
 import random
 import json
+from profile_page import profile_page
+from database import (
+    create_user_table, 
+    store_user, 
+    get_user, 
+    update_user_stats
+)
 
 # Load API key from a JSON file
 def load_api_key(filename="config.json"):
@@ -40,29 +46,13 @@ def create_user_table():
     conn.commit()
     conn.close()
 
-# Function to store new user data
-def store_user(username, password):
-    conn = create_connection()
-    conn.execute('INSERT INTO users (username, password, login_count) VALUES (?, ?, ?)', 
-                 (username, password, 0))
-    conn.commit()
-    conn.close()
-
-# Function to get user by username
-def get_user(username):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE username=?', (username,))
-    user = cursor.fetchone()
-    conn.close()
-    return user
-
-# Function to update user stats (e.g., login_count)
-def update_user_stats(username):
-    conn = create_connection()
-    conn.execute('UPDATE users SET login_count = login_count + 1 WHERE username=?', (username,))
-    conn.commit()
-    conn.close()
+# Load API key from a JSON file
+def load_api_key(filename="config.json"):
+    with open(filename, "r") as file:
+        data = json.load(file)
+        if not data:
+            raise ValueError("API key not found in JSON file.")
+        return data.get("OPENAI_API_KEY", "").strip()
 
 # Function to interact with ChatGPT
 def get_habit_context(username):
@@ -103,6 +93,7 @@ def chat_with_gpt(query, username):
     Be encouraging but realistic. Acknowledge their progress and setbacks naturally in conversation."""
 
     client = openai.OpenAI(
+        api_key=load_api_key()
         api_key=load_api_key()
     )
 
@@ -244,7 +235,10 @@ def login_page():
         if user and sha256(password.encode()).hexdigest() == user[1]:
             st.session_state['username'] = username
             update_user_stats(username)
-            st.session_state['login_count'] = user[2] + 1
+            # Store all user data in session state
+            st.session_state['login_count'] = user[2]
+            st.session_state['display_name'] = user[3]
+            st.session_state['bio'] = user[4]
             st.success("Login successful!")
             main_page()
         else:
@@ -509,4 +503,16 @@ if 'username' not in st.session_state:
     else:
         register_page()
 else:
-    main_page()
+    # Check which page to display
+    if 'page' not in st.session_state:
+        st.session_state['page'] = 'main'
+    
+    if st.session_state['page'] == 'main':
+        main_page()
+    elif st.session_state['page'] == 'profile':
+        profile_page()
+
+    # Handle force rerun if needed
+    if 'force_rerun' in st.session_state and st.session_state['force_rerun']:
+        del st.session_state['force_rerun']
+        st.rerun()
