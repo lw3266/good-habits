@@ -15,7 +15,7 @@ We developed the web app using Streamlit for a simple and effective UI, and usin
 
 **Challenges we ran into:**
 
-One of the biggest challenges was merging GitHub branches, correctly merging different database formats. Another challenge was appropriately implementing OpenAI integration into the web app and having it have access to the context of the users' progress as stored in the database.
+One of the biggest challenges was merging GitHub branches, correctly merging different database formats. Another challenge was appropriately implementing OpenAI integration into the web app and having it have access to the context of the users' progress as stored in the database. Another significant challenge we encountered was developing a browser extension to track users' web browser tabs and relay this information to ChatGPT. The goal was to enable the generation of personalized instructions, reminders, and tips tailored to the user's browsing activity. This functionality would enhance user engagement and provide context-aware assistance, but it required addressing technical complexities such as real-time data synchronization, privacy considerations, and seamless integration with ChatGPT's API.
 
 **Accomplishments that we're proud of:**
 
