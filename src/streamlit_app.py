@@ -57,15 +57,15 @@ def update_user_stats(username):
 # Function to interact with ChatGPT
 def chat_with_gpt(query):
     client = openai.OpenAI(
-    api_key=load_api_key()
+        api_key=load_api_key()
     )
 
     completion = client.chat.completions.create(
-    model="gpt-4o-mini",
-    store=True,
-    messages=[
-        {"role": "user", "content": query}
-    ]
+        model="gpt-4o-mini",
+        store=True,
+        messages=[
+            {"role": "user", "content": query}
+        ]
     )
 
     return completion.choices[0].message.content
@@ -105,6 +105,7 @@ def login_page():
         if user and sha256(password.encode()).hexdigest() == user[1]:
             st.session_state['username'] = username
             update_user_stats(username)
+            # Increase the login count by one (user[2] is the old value)
             st.session_state['login_count'] = user[2] + 1
             st.success("Login successful!")
             main_page()
@@ -114,10 +115,17 @@ def login_page():
 # Main page after login
 def main_page():
     st.subheader(f"Welcome {st.session_state['username']}!")
-
+    
+    # Inject a hidden HTML element so that the browser extension can obtain the current username.
+    # The element is hidden using inline CSS (display: none), but its text content contains the username.
+    st.markdown(
+        f"<div id='user-info' style='display: none;'>{st.session_state['username']}</div>",
+        unsafe_allow_html=True
+    )
+    
     # Show user stats
     st.write(f"Login Count: {st.session_state['login_count']}")
-
+    
     # Chat with ChatGPT
     query = st.text_area("Ask a question to ChatGPT:")
     if st.button("Send"):
